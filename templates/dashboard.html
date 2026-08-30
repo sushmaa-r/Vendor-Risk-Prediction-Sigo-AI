@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            font-family:Arial;
+        }
+
+        body{
+
+            background:linear-gradient(
+                135deg,
+                #0b1742,
+                #233b88,
+                #3fa9f5
+            );
+
+            min-height:100vh;
+
+            color:white;
+        }
+
+        nav{
+
+            width:100%;
+
+            padding:25px 60px;
+
+            display:flex;
+
+            justify-content:space-between;
+
+            align-items:center;
+
+            background:rgba(255,255,255,0.08);
+
+            backdrop-filter:blur(10px);
+
+            position:sticky;
+
+            top:0;
+
+            z-index:1000;
+        }
+
+        .logo{
+
+            font-size:28px;
+
+            font-weight:bold;
+        }
+
+        .nav-links a{
+
+            color:white;
+
+            text-decoration:none;
+
+            margin-left:20px;
+
+            font-size:18px;
+
+            transition:0.3s;
+
+            padding:10px 18px;
+
+            border-radius:12px;
+        }
+
+        .nav-links a:hover{
+
+            color:#38bdf8;
+
+            background:rgba(255,255,255,0.08);
+        }
+
+        .nav-links .active{
+
+            background:rgba(255,255,255,0.08);
+
+            color:white;
+
+            border:1px solid rgba(255,255,255,0.12);
+
+            backdrop-filter:blur(10px);
+
+            box-shadow:
+            0 4px 20px rgba(0,0,0,0.15),
+            inset 0 1px 1px rgba(255,255,255,0.08);
+        }
+
+        .title{
+
+            text-align:center;
+
+            margin-top:40px;
+
+            font-size:65px;
+
+            font-weight:bold;
+        }
+
+        .cards{
+
+            width:92%;
+
+            margin:40px auto;
+
+            display:grid;
+
+            grid-template-columns:repeat(4,1fr);
+
+            gap:25px;
+        }
+
+        .card{
+
+            background:rgba(255,255,255,0.12);
+
+            padding:35px;
+
+            border-radius:25px;
+
+            text-align:center;
+
+            box-shadow:0 10px 25px rgba(0,0,0,0.3);
+
+            transition:0.4s;
+        }
+
+        .card:hover{
+
+            transform:translateY(-8px) scale(1.02);
+        }
+
+        .card h1{
+
+            font-size:55px;
+
+            margin-bottom:15px;
+        }
+
+        .card p{
+
+            font-size:24px;
+        }
+
+        .charts{
+
+            width:92%;
+
+            margin:40px auto;
+
+            display:grid;
+
+            grid-template-columns:1fr 1fr;
+
+            gap:25px;
+        }
+
+        .chart-box{
+
+            background:rgba(255,255,255,0.12);
+
+            padding:25px;
+
+            border-radius:25px;
+
+            box-shadow:0 10px 25px rgba(0,0,0,0.3);
+
+            height:420px;
+
+            display:flex;
+
+            flex-direction:column;
+
+            justify-content:center;
+        }
+
+        canvas{
+
+            max-height:320px !important;
+
+            width:100% !important;
+        }
+
+        .chart-title{
+
+            text-align:center;
+
+            font-size:28px;
+
+            margin-bottom:20px;
+
+            font-weight:bold;
+        }
+
+        .insight-box{
+
+            width:92%;
+
+            margin:40px auto;
+
+            background:rgba(255,255,255,0.12);
+
+            padding:35px;
+
+            border-radius:25px;
+
+            font-size:24px;
+
+            line-height:1.8;
+
+            box-shadow:0 10px 25px rgba(0,0,0,0.3);
+
+            transition:0.4s;
+        }
+
+        .insight-box:hover{
+
+            transform:scale(1.01);
+        }
+
+        .footer{
+
+            text-align:center;
+
+            margin-top:40px;
+
+            padding:30px;
+
+            font-size:18px;
+
+            color:#ddd;
+        }
+
+        @media(max-width:1100px){
+
+            .cards{
+
+                grid-template-columns:1fr 1fr;
+            }
+
+            .charts{
+
+                grid-template-columns:1fr;
+            }
+        }
+
+        @media(max-width:700px){
+
+            .cards{
+
+                grid-template-columns:1fr;
+            }
+
+            .title{
+
+                font-size:42px;
+            }
+
+            nav{
+
+                padding:20px;
+            }
+
+            .nav-links a{
+
+                margin-left:10px;
+
+                font-size:15px;
+
+                padding:8px 12px;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <nav>
+
+        <div class="logo">
+
+            🚀 SIGO AI
+
+        </div>
+
+        <div class="nav-links">
+
+<a href="/"
+{% if active_page == 'home' %}
+class="active"
+{% endif %}>
+Home
+</a>
+
+<a href="/predict_page"
+{% if active_page == 'predict' %}
+class="active"
+{% endif %}>
+Predict Risk
+</a>
+
+<a href="/dashboard"
+{% if active_page == 'dashboard' %}
+class="active"
+{% endif %}>
+Dashboard
+</a>
+
+<a href="/about"
+{% if active_page == 'about' %}
+class="active"
+{% endif %}>
+About
+</a>
+
+</div>
+
+    </nav>
+
+    <div class="title">
+
+        📊 Vendor Analytics Dashboard
+
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+
+            <h1>{{ total_vendors }}</h1>
+
+            <p>Total Vendors</p>
+
+        </div>
+
+        <div class="card">
+
+            <h1>{{ high_risk }}</h1>
+
+            <p>High Risk Vendors</p>
+
+        </div>
+
+        <div class="card">
+
+            <h1>{{ low_risk }}</h1>
+
+            <p>Low Risk Vendors</p>
+
+        </div>
+
+        <div class="card">
+
+            <h1>{{ avg_rating }}</h1>
+
+            <p>Average Rating</p>
+
+        </div>
+
+    </div>
+
+    <div class="charts">
+
+        <div class="chart-box">
+
+            <div class="chart-title">
+
+                Vendor Risk Distribution
+
+            </div>
+
+            <canvas id="pieChart"></canvas>
+
+        </div>
+
+        <div class="chart-box">
+
+            <div class="chart-title">
+
+                Monthly Risk Trend
+
+            </div>
+
+            <canvas id="barChart"></canvas>
+
+        </div>
+
+    </div>
+
+    <div class="insight-box">
+
+        🤖 AI Insight:
+        Vendors with higher delay rates,
+        lower ratings,
+        and increased dispute history
+        show significantly higher procurement failure probability.
+        Machine Learning models help enterprises detect risky vendors
+        before procurement confirmation.
+
+    </div>
+
+    <div class="footer">
+
+        AI Powered Procurement Intelligence System • SIGO AI
+
+    </div>
+
+    <script>
+
+        const pieChart = new Chart(
+            document.getElementById('pieChart'),
+            {
+                type:'doughnut',
+
+                data:{
+                    labels:[
+                        'High Risk',
+                        'Low Risk'
+                    ],
+
+                    datasets:[{
+                        data:[
+                            {{ high_risk }},
+                            {{ low_risk }}
+                        ],
+
+                        backgroundColor:[
+                            '#ff4d6d',
+                            '#4ade80'
+                        ],
+
+                        borderWidth:0
+                    }]
+                },
+
+                options:{
+
+                    maintainAspectRatio:false,
+
+                    plugins:{
+                        legend:{
+                            labels:{
+                                color:'white',
+                                font:{
+                                    size:16
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        const barChart = new Chart(
+            document.getElementById('barChart'),
+            {
+                type:'bar',
+
+                data:{
+                    labels:[
+                        'Jan',
+                        'Feb',
+                        'Mar',
+                        'Apr',
+                        'May',
+                        'Jun'
+                    ],
+
+                    datasets:[{
+                        label:'Vendor Risk Cases',
+
+                        data:[
+                            120,
+                            190,
+                            300,
+                            250,
+                            400,
+                            280
+                        ],
+
+                        backgroundColor:'#4facfe',
+
+                        borderRadius:10
+                    }]
+                },
+
+                options:{
+
+                    maintainAspectRatio:false,
+
+                    scales:{
+
+                        x:{
+                            ticks:{
+                                color:'white'
+                            },
+
+                            grid:{
+                                color:'rgba(255,255,255,0.1)'
+                            }
+                        },
+
+                        y:{
+                            ticks:{
+                                color:'white'
+                            },
+
+                            grid:{
+                                color:'rgba(255,255,255,0.1)'
+                            }
+                        }
+                    },
+
+                    plugins:{
+                        legend:{
+                            labels:{
+                                color:'white'
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>
