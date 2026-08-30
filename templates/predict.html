@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Predict Vendor Risk</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:Arial,sans-serif;
+
+    background:linear-gradient(
+        135deg,
+        #0f172a,
+        #1e3a8a,
+        #38bdf8
+    );
+
+    color:white;
+
+    min-height:100vh;
+
+    overflow-x:hidden;
+}
+
+nav{
+
+    width:100%;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:20px 60px;
+
+    background:rgba(255,255,255,0.08);
+
+    backdrop-filter:blur(10px);
+}
+
+.logo{
+
+    font-size:32px;
+
+    font-weight:bold;
+}
+
+.nav-links a{
+
+    color:white;
+
+    text-decoration:none;
+
+    margin-left:20px;
+
+    font-size:18px;
+
+    transition:0.3s;
+
+    padding:10px 18px;
+
+    border-radius:12px;
+}
+
+.nav-links a:hover{
+
+    color:#38bdf8;
+
+    background:rgba(255,255,255,0.08);
+}
+
+.nav-links .active{
+
+    background:rgba(255,255,255,0.08);
+
+    color:white;
+
+    border:1px solid rgba(255,255,255,0.12);
+
+    backdrop-filter:blur(10px);
+
+    box-shadow:
+    0 4px 20px rgba(0,0,0,0.15),
+    inset 0 1px 1px rgba(255,255,255,0.08);
+}
+
+.container{
+
+    width:82%;
+
+    max-width:1050px;
+
+    margin:30px auto;
+
+    background:white;
+
+    color:#1e293b;
+
+    border-radius:25px;
+
+    padding:40px;
+
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.title{
+
+    text-align:center;
+
+    margin-bottom:35px;
+}
+
+.title h1{
+
+    font-size:52px;
+
+    color:#1e3a8a;
+
+    font-weight:bold;
+}
+
+.form-grid{
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    gap:20px;
+}
+
+.form-group{
+
+    display:flex;
+
+    flex-direction:column;
+}
+
+label{
+
+    font-size:18px;
+
+    font-weight:bold;
+
+    margin-bottom:10px;
+}
+
+input,
+select{
+
+    padding:15px;
+
+    border-radius:15px;
+
+    border:1px solid #ccc;
+
+    font-size:17px;
+
+    transition:0.3s;
+}
+
+input:focus,
+select:focus{
+
+    outline:none;
+
+    border-color:#2563eb;
+
+    box-shadow:0 0 10px rgba(37,99,235,0.3);
+}
+
+.full-width{
+
+    grid-column:1/3;
+}
+
+.button-container{
+
+    display:flex;
+
+    justify-content:center;
+
+    margin-top:35px;
+}
+
+button{
+
+    padding:18px 50px;
+
+    border:none;
+
+    border-radius:15px;
+
+    background:#1e3a8a;
+
+    color:white;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:0.3s;
+}
+
+button:hover{
+
+    transform:scale(1.05);
+
+    background:#2563eb;
+}
+
+.clear-btn{
+
+    background:#dc2626;
+
+    margin-left:15px;
+}
+
+.clear-btn:hover{
+
+    background:#ef4444;
+}
+
+.result{
+
+    margin-top:35px;
+
+    background:#f1f5f9;
+
+    padding:30px;
+
+    border-radius:20px;
+
+    text-align:center;
+}
+
+.high-risk{
+
+    color:red;
+
+    font-size:35px;
+
+    font-weight:bold;
+}
+
+.low-risk{
+
+    color:green;
+
+    font-size:35px;
+
+    font-weight:bold;
+}
+
+.probability{
+
+    margin-top:15px;
+
+    font-size:25px;
+
+    font-weight:bold;
+
+    color:#1e3a8a;
+}
+
+.meter-container{
+
+    width:100%;
+
+    height:25px;
+
+    background:#d1d5db;
+
+    border-radius:20px;
+
+    margin-top:20px;
+
+    overflow:hidden;
+}
+
+.meter-fill{
+
+    height:100%;
+
+    border-radius:20px;
+
+    transition:1s;
+}
+
+.footer{
+
+    text-align:center;
+
+    margin-top:30px;
+
+    color:gray;
+
+    font-size:15px;
+}
+
+@media(max-width:900px){
+
+    .form-grid{
+
+        grid-template-columns:1fr;
+    }
+
+    .full-width{
+
+        grid-column:auto;
+    }
+
+    .title h1{
+
+        font-size:42px;
+    }
+
+    .container{
+
+        width:92%;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav>
+
+<div class="logo">
+
+🚀 SIGO AI
+
+</div>
+
+<div class="nav-links">
+
+<a href="/"
+{% if active_page == 'home' %}
+class="active"
+{% endif %}>
+Home
+</a>
+
+<a href="/predict_page"
+{% if active_page == 'predict' %}
+class="active"
+{% endif %}>
+Predict Risk
+</a>
+
+<a href="/dashboard"
+{% if active_page == 'dashboard' %}
+class="active"
+{% endif %}>
+Dashboard
+</a>
+
+<a href="/about"
+{% if active_page == 'about' %}
+class="active"
+{% endif %}>
+About
+</a>
+
+</div>
+
+</nav>
+
+<div class="container">
+
+<div class="title">
+
+<h1>
+
+⚠ Vendor Risk Alert System
+
+</h1>
+
+</div>
+
+<form action="/predict"
+      method="post">
+
+<div class="form-grid">
+
+<div class="form-group">
+
+<label>
+Years In Business🏢
+</label>
+
+<select name="Years_In_Business">
+
+{% for i in range(1,101) %}
+
+<option value="{{ i }}"
+{% if form_data and form_data['Years_In_Business'] == i|string %}
+selected
+{% endif %}>
+
+{{ i }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Vendor Category🏭
+</label>
+
+<select name="Vendor_Category">
+
+{% for category in [
+'Chemicals',
+'Electronics',
+'Food & Beverage',
+'IT Hardware',
+'IT/IS',
+'Machinery',
+'Office',
+'Office Supplies',
+'Packaging',
+'Raw Materials',
+'Textiles'
+] %}
+
+<option value="{{ category }}"
+{% if form_data and form_data['Vendor_Category'] == category %}
+selected
+{% endif %}>
+
+{{ category }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Total Orders📦
+</label>
+
+<input type="number"
+       name="Total_Orders"
+       placeholder="Example: 3000"
+       value="{{ form_data['Total_Orders'] if form_data else '' }}"
+       required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Delivered Orders✅
+</label>
+
+<input type="number"
+       name="Delivered_Orders"
+       placeholder="Example: 2500"
+       value="{{ form_data['Delivered_Orders'] if form_data else '' }}"
+       required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Returned Orders↩
+</label>
+
+<input type="number"
+       name="Returned_Orders"
+       placeholder="Example: 100"
+       value="{{ form_data['Returned_Orders'] if form_data else '' }}"
+       required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Delayed Orders⏰
+</label>
+
+<input type="number"
+       name="Delayed_Orders"
+       placeholder="Example: 200"
+       value="{{ form_data['Delayed_Orders'] if form_data else '' }}"
+       required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Disputed Orders⚠
+</label>
+
+<input type="number"
+       name="Disputed_Orders"
+       placeholder="Example: 50"
+       value="{{ form_data['Disputed_Orders'] if form_data else '' }}"
+       required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Average Delivery Days🚚
+</label>
+
+<select name="Avg_Delivery_Days">
+
+{% for i in range(1,61) %}
+
+<option value="{{ i }}"
+{% if form_data and form_data['Avg_Delivery_Days'] == i|string %}
+selected
+{% endif %}>
+
+{{ i }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Vendor Rating⭐
+</label>
+
+<select name="Rating">
+
+{% for i in range(1,6) %}
+
+<option value="{{ i }}"
+{% if form_data and form_data['Rating'] == i|string %}
+selected
+{% endif %}>
+
+{{ i }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Product Quality Score📊
+</label>
+
+<select name="Product_Quality_Score">
+
+{% for i in range(1,11) %}
+
+<option value="{{ i }}"
+{% if form_data and form_data['Product_Quality_Score'] == i|string %}
+selected
+{% endif %}>
+
+{{ i }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Response Time Hours⏳
+</label>
+
+<select name="Response_Time_Hours">
+
+{% for i in range(1,73) %}
+
+<option value="{{ i }}"
+{% if form_data and form_data['Response_Time_Hours'] == i|string %}
+selected
+{% endif %}>
+
+{{ i }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+Refund Rate💸
+</label>
+
+<input type="number"
+       step="0.01"
+       name="Refund_Rate"
+       placeholder="Example: 0.15"
+       value="{{ form_data['Refund_Rate'] if form_data else '' }}"
+       required>
+
+</div>
+
+<div class="form-group full-width">
+
+<label>
+Contract Value💰
+</label>
+
+<input type="number"
+       name="Contract_Value"
+       placeholder="Example: 250000"
+       value="{{ form_data['Contract_Value'] if form_data else '' }}"
+       required>
+
+</div>
+
+</div>
+
+<div class="button-container">
+
+<button type="submit">
+
+Predict Vendor Risk
+
+</button>
+
+<button type="button"
+        onclick="window.location.href='/predict_page'"
+        class="clear-btn">
+
+Clear Form
+
+</button>
+
+</div>
+
+</form>
+
+{% if prediction_text %}
+
+<div class="result">
+
+{% if 'High Risk' in prediction_text %}
+
+<div class="high-risk">
+
+🚨 {{ prediction_text }}
+
+</div>
+
+{% else %}
+
+<div class="low-risk">
+
+✅ {{ prediction_text }}
+
+</div>
+
+{% endif %}
+
+<div class="probability">
+
+{{ probability_text }}
+
+</div>
+
+<div class="meter-container">
+
+<div class="meter-fill"
+
+style="
+
+width: {{ probability_value }}%;
+
+background:
+{% if probability_value >= 70 %}
+red
+{% elif probability_value >= 40 %}
+orange
+{% else %}
+green
+{% endif %};
+
+">
+
+</div>
+
+</div>
+
+</div>
+
+{% endif %}
+
+<div class="footer">
+
+AI Powered Procurement Intelligence System • SIGO AI
+
+</div>
+
+</div>
+
+</body>
+
+</html>
